@@ -7,9 +7,8 @@ public readonly record struct Solution(IReadOnlySet<int> Nodes, int Weight);
 public static class SolutionExtensions {
     public static IReadOnlyList<Solution> IntroduceNode(this IReadOnlyList<Solution> previousSolutions, UniDirGraph graph, int node)
         => previousSolutions.Concat(previousSolutions
-                .Select(x => x.Nodes.Any(n => graph.HasEdge(n, node)) ? default : new Solution(x.Nodes.Append(node).ToHashSet(),
-                    x.Weight + 1))
-                .Where(x => x.Nodes != null))
+                .Where(x => !x.Nodes.Any(n => graph.HasEdge(n, node)))
+                .Select(x => new Solution(x.Nodes.Append(node).ToHashSet(), x.Weight + 1)))
             .ToArray();
 
     public static IReadOnlyList<Solution> RemoveNode(this IReadOnlyList<Solution> previousSolutions, int node)
