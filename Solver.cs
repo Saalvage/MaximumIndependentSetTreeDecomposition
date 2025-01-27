@@ -1,6 +1,4 @@
 ﻿
-using System.Diagnostics;
-
 namespace MaximumIndependentSetTreeDecomposition;
 
 public class Solver {
@@ -16,33 +14,22 @@ public class Solver {
 
     public int Solve() => CalculateSolutions(0).Max(x => x.Weight);
 
-    private IReadOnlyList<Solution> CalculateSolutions(int root) {
-        var leaf = _bagGraph.ForwardGraph.FindLeaf(root);
-        IReadOnlyList<Solution> solutions = [new(new HashSet<int>(), 0)];
-
-        foreach (var node in _bags[leaf]) {
-            solutions = solutions.IntroduceNode(_graph, node);
-        }
-
-        while (leaf != root) {
-            var edges = _bagGraph.BackwardGraph.GetEdges(leaf);
-            Debug.Assert(edges.Length == 1);
-            var newNode = edges[0];
-            solutions = Transition(leaf, newNode, solutions);
-            var furtherEdges = _bagGraph.ForwardGraph.GetEdges(newNode);
-            if (furtherEdges.Length != 1) {
-                foreach (var other in furtherEdges) {
-                    if (other != leaf) {
-                        var otherSolutions = CalculateSolutions(other);
-                        otherSolutions = Transition(other, newNode, otherSolutions);
-                        solutions = solutions.Merge(otherSolutions);
-                    }
-                }
+    private IReadOnlyList<Solution> CalculateSolutions(int root, int blockFrom = -1) {
+        var edges = _bagGraph.NodeEdges[root];
+        if (edges.Count == 1 && blockFrom != -1) {
+            IReadOnlyList<Solution> solutions = [new(new HashSet<int>(), 0)];
+            foreach (var node in _bags[root]) {
+                solutions = solutions.IntroduceNode(_graph, node);
             }
-            leaf = newNode;
+
+            return solutions;
         }
 
-        return solutions;
+        return edges.Where(x => x != blockFrom)
+            .Select(x => (x, CalculateSolutions(x, root)))
+            .Select(x => Transition(x.x, root, x.Item2))
+            .Aggregate((x, y) => x.Merge(y))
+            .ToArray();
     }
 
     private IReadOnlyList<Solution> Transition(int from, int to, IReadOnlyList<Solution> solutions) {
