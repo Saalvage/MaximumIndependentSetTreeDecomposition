@@ -1,18 +1,19 @@
-﻿namespace MaximumIndependentSetTreeDecomposition;
+﻿using System.Collections.Frozen;
+
+namespace MaximumIndependentSetTreeDecomposition;
 
 // These classes are not general purpose, they are somewhat idiosyncratic.
 
-// This graph representation is effectively like a tree.
 public record UniDirGraph(IReadOnlySet<int>[] NodeEdges) {
     public static async Task<UniDirGraph> CreateFromEdges(int nodeCount, IAsyncEnumerable<(int, int)> edges) {
-        var nodeEdges = new HashSet<int>[nodeCount];
+        var nodeEdges = new List<int>[nodeCount];
         Initialize();
 
         await foreach (var (from, to) in edges) {
             nodeEdges[from].Add(to);
         }
 
-        return new(nodeEdges);
+        return new(nodeEdges.Select(x => x.ToFrozenSet()).ToArray());
 
         void Initialize() {
             foreach (ref var node in nodeEdges.AsSpan()) {
@@ -30,7 +31,7 @@ public record UniDirGraph(IReadOnlySet<int>[] NodeEdges) {
     }
 
     public BiDirGraph CreateBiDir() {
-        var newNodeEdges = new HashSet<int>[NodeEdges.Length];
+        var newNodeEdges = new List<int>[NodeEdges.Length];
         for (var i = 0; i < NodeEdges.Length; i++) {
             newNodeEdges[i] = new(NodeEdges[i]);
         }
@@ -41,7 +42,7 @@ public record UniDirGraph(IReadOnlySet<int>[] NodeEdges) {
             }
         }
 
-        return new(newNodeEdges);
+        return new(newNodeEdges.Select(x => x.ToFrozenSet()).ToArray());
     }
 }
 
