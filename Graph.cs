@@ -46,11 +46,14 @@ public record UniDirGraph(int[] Nodes, int[] Edges, bool IsBackwards = false) {
         while (true) {
             var edges = GetEdges(node);
             if (edges.Length == 0) {
+                Debug.Assert(IsLeaf(node));
                 return node;
             }
             node = edges[0];
         }
     }
+
+    private bool IsLeaf(int node) => Enumerable.Range(0, Nodes.Length - 1).Count(x => HasEdge(node, x)) == 1;
 
     public async Task<BiDirGraph> CreateBiDir() {
         return new(this, await UniDirGraph.CreateFromEdges(Nodes.Length - 1, Nodes[^1], GetReverseEdges(), true));
