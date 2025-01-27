@@ -15,7 +15,7 @@ public static class Input {
         await using var stream = File.OpenRead(file);
         using var reader = new StreamReader(stream);
         var info = (await reader.ReadLineAsync())!.Split(' ');
-        return await UniDirGraph.CreateFromEdges(int.Parse(info[2]), int.Parse(info[3]), ReadEdges(reader));
+        return await UniDirGraph.CreateFromEdges(int.Parse(info[2]), ReadEdges(reader));
     }
 
     private static async Task<(IReadOnlySet<int>[] Bags, BiDirGraph BagGraph)> LoadDecomposition(string file) {
@@ -32,7 +32,7 @@ public static class Input {
             bags[int.Parse(split[1]) - 1] = split.Skip(2).Select(int.Parse).Select(x => x - 1).ToHashSet();
         }
 
-        return (bags, await (await UniDirGraph.CreateFromEdges(bags.Length, bags.Length - 1, ReadEdges(reader))).CreateBiDir());
+        return (bags, (await UniDirGraph.CreateFromEdges(bags.Length, ReadEdges(reader))).CreateBiDir());
     }
 
     private static async IAsyncEnumerable<(int, int)> ReadEdges(TextReader reader) {
