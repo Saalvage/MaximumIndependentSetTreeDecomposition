@@ -26,11 +26,11 @@ public class Solver {
 
         while (leaf != root) {
             var edges = _bagGraph.BackwardGraph.GetEdges(leaf);
-            Debug.Assert(edges.Length == 1);
-            var newNode = edges[0];
+            Debug.Assert(edges.Count == 1);
+            var newNode = edges.First();
             solutions = Transition(leaf, newNode, solutions);
             var furtherEdges = _bagGraph.ForwardGraph.GetEdges(newNode);
-            if (furtherEdges.Length != 1) {
+            if (furtherEdges.Count != 1) {
                 foreach (var other in furtherEdges) {
                     if (other != leaf) {
                         var otherSolutions = CalculateSolutions(other);
