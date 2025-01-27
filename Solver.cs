@@ -12,9 +12,9 @@ public class Solver {
         _bagGraph = bagGraph;
     }
 
-    public int Solve() => CalculateSolutions(0).Max(x => x.Weight);
+    public async Task<int> Solve() => (await CalculateSolutions(0)).Max(x => x.Weight);
 
-    private IReadOnlyList<Solution> CalculateSolutions(int root, int blockFrom = -1) {
+    private async Task<IReadOnlyList<Solution>> CalculateSolutions(int root, int blockFrom = -1) {
         var edges = _bagGraph.NodeEdges[root];
         if (edges.Count == 1 && blockFrom != -1) {
             IReadOnlyList<Solution> solutions = [new(new HashSet<int>(), 0)];
@@ -25,11 +25,10 @@ public class Solver {
             return solutions;
         }
 
-        return edges.Where(x => x != blockFrom)
-            .Select(x => (x, CalculateSolutions(x, root)))
-            .Select(x => Transition(x.x, root, x.Item2))
-            .Aggregate((x, y) => x.Merge(y))
-            .ToArray();
+        return (await Task.WhenAll(edges.Where(x => x != blockFrom)
+                .Select(x => CalculateSolutions(x, root)
+                    .ContinueWith(y => Transition(x, root, y.Result)))))
+            .Aggregate((x, y) => x.Merge(y));
     }
 
     private IReadOnlyList<Solution> Transition(int from, int to, IReadOnlyList<Solution> solutions) {

@@ -19,7 +19,7 @@ static async Task Solve(string file) {
     var (graph, bags, bagGraph) = await Input.Load(file);
     var start = DateTimeOffset.UtcNow;
     var solver = new Solver(graph, bags, bagGraph);
-    var solution = solver.Solve();
+    var solution = await solver.Solve();
     var time = DateTimeOffset.UtcNow - start;
     Console.WriteLine($"Calculated graph {Path.GetFileName(file)}'s maximum independent vertex set size to be {solution} in {time.TotalMilliseconds}ms");
 }
